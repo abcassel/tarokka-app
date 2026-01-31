@@ -3,81 +3,76 @@ import pandas as pd
 import random
 
 # --- CONFIGURATION ---
-st.set_page_config(page_title="Tarokka Automaton", page_icon="⚙️", layout="centered")
+st.set_page_config(page_title="The Raven's Deck", page_icon="✒️", layout="centered")
 
-# --- STEAMPUNK VICTORIAN STYLING ---
+# --- EDGAR ALLAN POE / VICTORIAN STEAMPUNK STYLING ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Special+Elite&display=swap');
+    /* Importing fonts: IM Fell for old book feel, La Belle Aurore for quill handwriting */
+    @import url('https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=La+Belle+Aurore&family=Special+Elite&display=swap');
 
-    /* Background: Deep Charcoal/Leather */
     .stApp {
-        background-color: #1b1713;
-        background-image: radial-gradient(#2c251e 1px, transparent 1px);
-        background-size: 20px 20px;
-        color: #d4af37; /* Brass Gold */
+        background-color: #12100e;
+        background-image: url("https://www.transparenttextures.com/patterns/dark-leather.png");
+        color: #c5b358; /* Aged Gold */
     }
     
-    /* The Card Container: Parchment with Brass Border */
     .card-box {
-        background-color: #f4e4bc; /* Aged Paper */
-        background-image: url("https://www.transparenttextures.com/patterns/pinstriped-dark.png");
-        padding: 50px 20px;
-        border-radius: 5px;
-        border: 8px double #8b5a2b; /* Bronze Double Border */
+        background-color: #e8dcc4; /* Tea-stained paper */
+        background-image: url("https://www.transparenttextures.com/patterns/old-paper.png");
+        padding: 60px 20px;
+        border-radius: 2px;
+        border: 2px solid #3d2b1f;
+        outline: 10px double #5d4037; /* Ornate outer frame */
+        outline-offset: -20px;
         text-align: center;
         margin-top: 30px;
-        box-shadow: 0px 0px 20px 2px rgba(0,0,0,0.8), inset 0px 0px 50px rgba(139,90,43,0.3);
+        box-shadow: 0px 15px 35px rgba(0,0,0,0.7);
     }
 
-    /* Gothic Victorian Card Name */
+    /* Poe-esque Card Name: Elegant but haunting old book font */
     .card-name {
-        font-family: 'UnifrakturMaguntia', serif;
-        font-size: 75px;
-        color: #2e1a05; /* Deep Ink */
-        line-height: 1;
-        margin-bottom: 15px;
+        font-family: 'IM Fell English SC', serif;
+        font-size: 65px;
+        color: #1a1a1a;
+        margin-bottom: 5px;
+        letter-spacing: 2px;
     }
 
-    /* Steampunk Metadata (Typewriter style) */
+    /* Handwriting style for "Number of Suit" */
     .card-meta {
-        font-family: 'Special Elite', cursive;
-        font-size: 24px;
-        color: #5d4037;
-        text-transform: uppercase;
-        border-top: 1px solid #8b5a2b;
-        display: inline-block;
-        padding-top: 10px;
-        margin-top: 5px;
+        font-family: 'La Belle Aurore', cursive;
+        font-size: 32px;
+        color: #4a3728;
+        margin-top: 0px;
     }
 
-    /* Steampunk Button: Brass/Copper */
+    /* Steampunk Operative Button */
     .stButton>button {
-        background: linear-gradient(180deg, #b8860b 0%, #8b5a2b 100%) !important;
-        color: #fff !important;
-        border: 2px solid #5d4037 !important;
+        background: #2c251e !important;
+        color: #c5b358 !important;
+        border: 1px solid #c5b358 !important;
         font-family: 'Special Elite', cursive !important;
-        font-size: 20px !important;
         border-radius: 0px !important;
-        box-shadow: 2px 2px 0px #000;
+        padding: 10px 25px !important;
+        transition: 0.3s;
     }
     
-    .stButton>button:active {
-        box-shadow: 0px 0px 0px #000 !important;
-        transform: translateY(2px);
+    .stButton>button:hover {
+        background: #c5b358 !important;
+        color: #12100e !important;
     }
 
     h1 {
-        font-family: 'UnifrakturMaguntia', serif;
-        color: #d4af37;
+        font-family: 'IM Fell English SC', serif;
+        color: #c5b358;
         text-align: center;
-        font-size: 50px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("The Tarokka")
-st.write("Fortune has a message for you...")
+st.title("🐦‍⬛ The Tarokka")
+st.write("Reveal your dark reflection...")
 
 # --- LOAD DATA ---
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
@@ -87,27 +82,25 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         df.columns = [c.strip() for c in df.columns]
         
-        if st.button("DRAW A CARD", use_container_width=True):
+        if st.button("CONSULT THE DECK", use_container_width=True):
             card = df.sample(n=1).iloc[0]
             
             # Extract data
             name = card.get('Card Name', 'Unknown')
             suit = card.get('Suit', 'High Deck')
-            prompt = card.get('Image Prompt', 'The automaton remains silent.')
+            prompt = card.get('Image Prompt', 'The pages are blank...')
             num = card.get('Card Number', '')
 
-            # Logic for clean display
-            suit_text = str(suit) if pd.notna(suit) else "High Deck"
-            
-            # Format number and suit together
-            if pd.notna(num) and num != '':
+            # Logic for "Number of Suit" or "High Deck"
+            if pd.notna(num) and num != '' and pd.notna(suit):
                 try:
                     num_val = int(float(num))
-                    meta_display = f"{suit_text} • No. {num_val}"
+                    meta_display = f"{num_val} of {suit}"
                 except:
-                    meta_display = f"{suit_text} • {num}"
+                    meta_display = f"{num} of {suit}"
             else:
-                meta_display = f"{suit_text}"
+                # For High Deck cards which usually don't have numbers
+                meta_display = f"from the {suit}"
 
             # Display the "Card"
             st.markdown(f"""
@@ -117,12 +110,12 @@ if uploaded_file is not None:
                 </div>
             """, unsafe_allow_html=True)
             
-            # Steampunk style expander
-            with st.expander("Read the Brass Plates"):
-                st.markdown(f"***{prompt}***")
+            # Descriptive text in a typewriter style
+            with st.expander("The Prophet's Notes"):
+                st.markdown(f"<div style='font-family:\"Special Elite\"; color:#d4af37;'>{prompt}</div>", unsafe_allow_html=True)
 
     except Exception as e:
-        st.error(f"Mechanical failure: {e}")
+        st.error(f"The gears have jammed: {e}")
 
 else:
-    st.info("The apparatus requires a data input. Upload your Tarokka CSV.")
+    st.info("The ledger is empty. Please provide the Tarokka CSV.")
