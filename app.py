@@ -41,7 +41,7 @@ st.markdown("""
 
     /* Handwriting style for "Number of Suit" */
     .card-meta {
-        font-family: 'La Belle Aurore', cursive;
+        font-family: 'IM Fell English SC', bold;
         font-size: 32px;
         color: #4a3728;
         margin-top: 0px;
