@@ -1,104 +1,73 @@
 import streamlit as st
 import pandas as pd
-from openai import OpenAI
-import os
+import random
 
 # --- CONFIGURATION ---
-# In a real app, you would store this in Streamlit Secrets, not paste it directly.
-# For now, the app will ask the user to input it for safety.
-st.set_page_config(page_title="Tarokka Oracle", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="Tarokka Dealer", page_icon="🃏", layout="centered")
 
-# --- CSS STYLING (Gothic Vibe) ---
+# --- GOTHIC STYLING ---
 st.markdown("""
 <style>
     .stApp {
-        background-color: #0e1117;
-        color: #c9c9c9;
+        background-color: #1a1a1a;
+        color: #e0e0e0;
     }
-    h1 {
-        font-family: 'Courier New', Courier, monospace;
-        color: #ff4b4b;
+    .card-box {
+        background-color: #2d2d2d;
+        padding: 50px;
+        border-radius: 15px;
+        border: 2px solid #ff4b4b;
         text-align: center;
+        margin-top: 30px;
+        box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
     }
-    .card-title {
-        font-size: 30px;
+    .card-name {
+        font-family: 'Georgia', serif;
+        font-size: 60px;
         font-weight: bold;
-        color: #ffffff;
-        text-align: center;
-        margin-bottom: 10px;
+        color: #ff4b4b;
+        text-transform: uppercase;
+        letter-spacing: 5px;
     }
-    .card-info {
-        font-size: 18px;
+    .card-suit {
+        font-size: 24px;
         color: #888888;
-        text-align: center;
         font-style: italic;
+        margin-top: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- APP LOGIC ---
-def main():
-    st.title("🔮 The Tarokka Oracle")
-    st.write("Draw a card from the mists of Barovia and reveal its visage.")
+st.title("🔮 Tarokka Card Dealer")
+st.write("Click the button below to draw a card from the deck.")
 
-    # 1. API Key Input (Sidebar)
-    api_key = st.sidebar.text_input("Enter OpenAI API Key", type="password")
+# --- LOAD DATA ---
+# This looks for the file you uploaded to GitHub or the one you provide via uploader
+uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
     
-    # 2. File Uploader
-    uploaded_file = st.sidebar.file_uploader("Upload your Tarokka CSV", type=["csv", "xlsx"])
-
-    if not api_key:
-        st.warning("Please enter your OpenAI API key in the sidebar to begin.")
-        return
-
-    if uploaded_file is None:
-        st.info("Please upload the 'tarokka_deck.csv' file to the sidebar.")
-        return
-
-    # 3. Load Data
-    try:
-        if uploaded_file.name.endswith('.csv'):
-            df = pd.read_csv(uploaded_file)
-        else:
-            df = pd.read_excel(uploaded_file)
-    except Exception as e:
-        st.error(f"Error reading file: {e}")
-        return
-
-    # 4. The Draw Button
-    if st.button("🎴 Draw a Card from the Deck", use_container_width=True):
-        
-        # Pick a random row
+    if st.button("🎴 DRAW A CARD", use_container_width=True):
+        # Pick a random card
         card = df.sample(n=1).iloc[0]
         
-        # Extract details
-        card_name = card['Card Name']
+        # Determine labels
+        name = card['Card Name']
         suit = card['Suit'] if pd.notna(card['Suit']) else "High Deck"
-        prompt = card['Image Prompt']
-        
-        # Display Text Info
-        st.markdown("---")
-        st.markdown(f"<div class='card-title'>{card_name}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='card-info'>{suit}</div>", unsafe_allow_html=True)
-        
-        # 5. Generate Image
-        client = OpenAI(api_key=api_key)
-        
-        with st.spinner(f"Summoning the image of the {card_name}..."):
-            try:
-                response = client.images.generate(
-                    model="dall-e-3",
-                    prompt=prompt,
-                    size="1024x1024",
-                    quality="standard",
-                    n=1,
-                )
-                
-                image_url = response.data[0].url
-                st.image(image_url, caption=prompt, use_column_width=True)
-                
-            except Exception as e:
-                st.error(f"The mists are too thick (API Error): {e}")
+        num = f" ({int(card['Card Number'])})" if pd.notna(card['Card Number']) else ""
 
-if __name__ == "__main__":
-    main()
+        # Display the "Card"
+        st.markdown(f"""
+            <div class="card-box">
+                <div class="card-name">{name}</div>
+                <div class="card-suit">{suit}{num}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Optional: Show the prompt as a sub-text for flavor
+        with st.expander("View Card Description"):
+            st.write(card['Image Prompt'])
+
+else:
+    st.info("Please upload your Tarokka CSV file in the sidebar to begin.")
