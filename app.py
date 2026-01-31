@@ -28,7 +28,6 @@ st.markdown("""
         box-shadow: 0px 15px 35px rgba(0,0,0,0.8);
     }
 
-    /* Victorian Serif for Card Name */
     .card-name {
         font-family: 'Cormorant Garamond', serif;
         font-size: 70px;
@@ -38,40 +37,40 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Handwriting for Number of Suit */
     .card-meta {
         font-family: 'La Belle Aurore', cursive;
-        font-size: 30px;
+        font-size: 32px;
         color: #4a3728;
         margin-top: 0px;
     }
 
-    /* Lore Section Styling */
     .lore-container {
         margin-top: 40px;
-        padding: 20px;
-        background: rgba(0,0,0,0.3);
-        border-left: 3px solid #8b0000; /* Blood red accent */
+        padding: 30px;
+        background: rgba(20, 15, 10, 0.8);
+        border-left: 4px solid #8b0000;
         font-family: 'Special Elite', cursive;
+        box-shadow: inset 0px 0px 20px rgba(0,0,0,0.5);
     }
 
     .lore-title {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 28px;
+        font-size: 30px;
         color: #8b0000;
         font-style: italic;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
+        border-bottom: 1px solid #3d2b1f;
+        display: inline-block;
     }
 
     .lore-text {
         color: #d4c4a8;
-        font-size: 18px;
-        line-height: 1.5;
+        font-size: 19px;
+        line-height: 1.6;
     }
 
-    /* Steampunk Button */
     .stButton>button {
         background: #2c251e !important;
         color: #c5b358 !important;
@@ -79,37 +78,43 @@ st.markdown("""
         font-family: 'Special Elite', cursive !important;
         border-radius: 0px !important;
         transition: 0.3s;
+        height: 3em;
+        font-size: 18px !important;
     }
     
     .stButton>button:hover {
         background: #c5b358 !important;
         color: #12100e !important;
+        box-shadow: 0px 0px 15px #c5b358;
     }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("🍷 The Tarokka Ledger")
-st.write("Turn the rusted crank to consult the Lore of Barovia...")
 
 # --- LOAD DATA ---
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
 
 if uploaded_file is not None:
     try:
+        # Load and clean headers immediately
         df = pd.read_csv(uploaded_file)
-        df.columns = [c.strip() for c in df.columns]
+        df.columns = [c.strip().lower() for c in df.columns] # Force everything to lowercase and clean
         
         if st.button("CONSULT THE VOID", use_container_width=True):
             card = df.sample(n=1).iloc[0]
             
-            # Extract data
-            name = card.get('Card Name', 'Unknown')
-            suit = card.get('Suit', 'High Deck')
-            lore = card.get('Lore of Strahd', 'The mists of time have obscured this legend.')
-            num = card.get('Card Number', '')
+            # Extract data using lowercase keys
+            name = card.get('card name', 'Unknown Card')
+            suit = card.get('suit', 'High Deck')
+            
+            # This looks specifically for your 'lore' column
+            lore_content = card.get('lore', 'The ink has faded from this section of the ledger.')
+            
+            num = card.get('card number', '')
 
             # Format "Number of Suit"
-            if pd.notna(num) and num != '' and pd.notna(suit):
+            if pd.notna(num) and num != '' and pd.notna(suit) and str(suit).lower() != 'high':
                 try:
                     num_val = int(float(num))
                     meta_display = f"{num_val} of {suit}"
@@ -130,12 +135,11 @@ if uploaded_file is not None:
             st.markdown(f"""
                 <div class="lore-container">
                     <div class="lore-title">Lore of Strahd</div>
-                    <div class="lore-text">{lore}</div>
+                    <div class="lore-text">{lore_content}</div>
                 </div>
             """, unsafe_allow_html=True)
 
     except Exception as e:
-        st.error(f"The mechanism has seized: {e}")
-
+        st.error(f"The gears have jammed: {e}")
 else:
-    st.info("The ledger awaits its data. Please upload the Tarokka CSV.")
+    st.info("The ledger is empty. Please upload your Tarokka CSV in the sidebar.")
