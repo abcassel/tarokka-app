@@ -71,8 +71,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🐦‍⬛ The Tarokka")
-st.write("Reveal your dark reflection...")
+st.title("✒️ The Tarokka Ledger")
+st.write("Consult the mechanical oracle to reveal your dark reflection...")
 
 # --- LOAD DATA ---
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
@@ -82,7 +82,7 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         df.columns = [c.strip() for c in df.columns]
         
-        if st.button("CONSULT THE DECK", use_container_width=True):
+        if st.button("CONSULT THE VOID", use_container_width=True):
             card = df.sample(n=1).iloc[0]
             
             # Extract data
