@@ -76,8 +76,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("⚙️ The Tarokka Automaton")
-st.write("Engage the brass gears to draw a card from the deck...")
+st.title("The Tarokka")
+st.write("Fortune has a message for you...")
 
 # --- LOAD DATA ---
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
@@ -87,7 +87,7 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         df.columns = [c.strip() for c in df.columns]
         
-        if st.button("⚙️ OPERATE MECHANISM", use_container_width=True):
+        if st.button("DRAW A CARD", use_container_width=True):
             card = df.sample(n=1).iloc[0]
             
             # Extract data
