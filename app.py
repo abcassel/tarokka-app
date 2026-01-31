@@ -39,35 +39,47 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🔮 Tarokka Card Dealer")
-st.write("Click the button below to draw a card from the deck.")
+st.write("Draw a card to reveal its name.")
 
 # --- LOAD DATA ---
-# This looks for the file you uploaded to GitHub or the one you provide via uploader
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    
-    if st.button("🎴 DRAW A CARD", use_container_width=True):
-        # Pick a random card
-        card = df.sample(n=1).iloc[0]
+    try:
+        # Load the dataframe
+        df = pd.read_csv(uploaded_file)
         
-        # Determine labels
-        name = card['Card Name']
-        suit = card['Suit'] if pd.notna(card['Suit']) else "High Deck"
-        num = f" ({int(card['Card Number'])})" if pd.notna(card['Card Number']) else ""
+        # CLEANING STEP: Remove hidden spaces from column names
+        df.columns = [c.strip() for c in df.columns]
+        
+        if st.button("🎴 DRAW A CARD", use_container_width=True):
+            # Pick a random card
+            card = df.sample(n=1).iloc[0]
+            
+            # Use .get() to avoid KeyErrors if a column is missing
+            name = card.get('Card Name', 'Unknown Card')
+            suit = card.get('Suit', 'High Deck')
+            prompt = card.get('Image Prompt', 'No description available.')
+            num = card.get('Card Number', '')
+            
+            # Format Suit text
+            suit_display = f"{suit}" if pd.notna(suit) else "High Deck"
+            num_display = f" ({int(num)})" if pd.notna(num) and num != '' else ""
 
-        # Display the "Card"
-        st.markdown(f"""
-            <div class="card-box">
-                <div class="card-name">{name}</div>
-                <div class="card-suit">{suit}{num}</div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # Optional: Show the prompt as a sub-text for flavor
-        with st.expander("View Card Description"):
-            st.write(card['Image Prompt'])
+            # Display the "Card"
+            st.markdown(f"""
+                <div class="card-box">
+                    <div class="card-name">{name}</div>
+                    <div class="card-suit">{suit_display}{num_display}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Show the flavor text/prompt below
+            with st.expander("View Card Description"):
+                st.write(prompt)
+
+    except Exception as e:
+        st.error(f"Error processing file: {e}")
 
 else:
     st.info("Please upload your Tarokka CSV file in the sidebar to begin.")
