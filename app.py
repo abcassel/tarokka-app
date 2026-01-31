@@ -90,7 +90,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🍷 The Tarokka Ledger")
+st.title("🐦‍⬛ The Tarokka")
 
 # --- LOAD DATA ---
 uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
@@ -101,7 +101,7 @@ if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         df.columns = [c.strip().lower() for c in df.columns] # Force everything to lowercase and clean
         
-        if st.button("CONSULT THE VOID", use_container_width=True):
+        if st.button("Draw a card", use_container_width=True):
             card = df.sample(n=1).iloc[0]
             
             # Extract data using lowercase keys
@@ -140,6 +140,6 @@ if uploaded_file is not None:
             """, unsafe_allow_html=True)
 
     except Exception as e:
-        st.error(f"The gears have jammed: {e}")
+        st.error(f"Uncertainty abounds: {e}")
 else:
     st.info("The ledger is empty. Please upload your Tarokka CSV in the sidebar.")
