@@ -27,13 +27,13 @@ st.markdown("""
         box-shadow: 0px 15px 35px rgba(0,0,0,0.8);
     }
 
-    /* Victorian Daguerreotype Frame for Top Image */
     .image-container {
         border: 12px double #8b5a2b;
         padding: 10px;
         background-color: #2c251e;
         box-shadow: 0px 10px 30px rgba(0,0,0,0.9);
         margin-bottom: 25px;
+        text-align: center;
     }
 
     .card-name {
@@ -80,13 +80,6 @@ st.markdown("""
         height: 4em;
         width: 100%;
         font-size: 18px !important;
-        letter-spacing: 2px;
-    }
-    
-    .stButton>button:hover {
-        background: #c5b358 !important;
-        color: #12100e !important;
-        box-shadow: 0px 0px 15px #c5b358;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -99,26 +92,40 @@ uploaded_file = st.sidebar.file_uploader("Upload Tarokka CSV", type=["csv"])
 if uploaded_file is not None:
     try:
         df = pd.read_csv(uploaded_file)
+        # Clean headers: lowercase and strip spaces
         df.columns = [c.strip().lower() for c in df.columns]
         
         if st.button("CONSULT THE MECHANICAL ORACLE"):
             card = df.sample(n=1).iloc[0]
             
-            # Fetch data
-            name = card.get('card name', 'Unknown Card')
-            suit = card.get('suit', 'High Deck')
-            lore_text = card.get('lore', 'The ink has faded from this section...')
-            num = card.get('card number', '')
-            # Column F is index 5
-            image_val = card.iloc[5] if len(card) >= 6 else None
+            # 1. FIND THE IMAGE COLUMN (Search for common names)
+            image_col = None
+            for col in df.columns:
+                if col in ['image', 'file', 'path', 'image prompt', 'f']: # Look for these specifically
+                    image_col = col
+                    break
+            
+            # Fallback to the 6th column (index 5) if no match found
+            if not image_col and len(df.columns) >= 6:
+                image_col = df.columns[5]
+            
+            image_val = card.get(image_col) if image_col else None
 
-            # 1. DISPLAY IMAGE AT THE VERY TOP
+            # 2. DISPLAY IMAGE AT THE VERY TOP
             if pd.notna(image_val) and str(image_val).strip() != "":
                 st.markdown('<div class="image-container">', unsafe_allow_html=True)
-                st.image(image_val, use_container_width=True)
+                # Ensure it's treated as a string/path
+                img_path = str(image_val).strip()
+                st.image(img_path, use_container_width=True)
                 st.markdown('</div>', unsafe_allow_html=True)
 
-            # 2. DISPLAY CARD NAME & NUMBER
+            # 3. EXTRACT DATA
+            name = card.get('card name', 'Unknown Card')
+            suit = card.get('suit', 'High Deck')
+            lore_text = card.get('lore', 'The mists of Barovia shroud this entry...')
+            num = card.get('card number', '')
+
+            # 4. NAME & NUMBER BOX
             if pd.notna(num) and str(num).strip() != '' and str(suit).lower() != 'high':
                 try:
                     num_val = int(float(num))
@@ -135,7 +142,7 @@ if uploaded_file is not None:
                 </div>
             """, unsafe_allow_html=True)
 
-            # 3. DISPLAY LORE OF STRAHD
+            # 5. LORE BOX
             st.markdown(f"""
                 <div class="ledger-box">
                     <div class="lore-title">Lore of Strahd</div>
